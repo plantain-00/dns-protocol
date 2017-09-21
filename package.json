@@ -1,0 +1,40 @@
+{
+  "name": "dns-protocol",
+  "version": "1.0.0",
+  "description": "A Library to encode and parse data for DNS protocol.",
+  "main": "index.js",
+  "scripts": {
+    "build": "clean-scripts build",
+    "lint": "clean-scripts lint",
+    "test": "clean-scripts test",
+    "fix": "clean-scripts fix",
+    "release": "clean-scripts release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plantain-00/dns-protocol.git"
+  },
+  "author": "York Yao",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/plantain-00/dns-protocol/issues"
+  },
+  "homepage": "https://github.com/plantain-00/dns-protocol#readme",
+  "devDependencies": {
+    "@types/jasmine": "2.6.0",
+    "clean-release": "1.3.5",
+    "clean-scripts": "1.2.6",
+    "jasmine": "2.8.0",
+    "no-unused-export": "1.2.7",
+    "rimraf": "2.6.2",
+    "rollup": "0.50.0",
+    "rollup-plugin-node-resolve": "3.0.0",
+    "rollup-plugin-uglify": "2.0.1",
+    "standard": "10.0.3",
+    "tslint": "5.7.0",
+    "typescript": "2.5.2"
+  },
+  "dependencies": {
+    "fluent-binary-converter": "3.0.2"
+  }
+}
