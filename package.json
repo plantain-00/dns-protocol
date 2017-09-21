@@ -35,6 +35,6 @@
     "typescript": "2.5.2"
   },
   "dependencies": {
-    "fluent-binary-converter": "3.0.2"
+    "fluent-binary-converter": "4"
   }
 }

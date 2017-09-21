@@ -119,78 +119,35 @@ export default class Message {
     }
 
     public encode() {
-        const transactionId = BinaryEncoder.fromUint16(false, this.transactionId);
-        const flags = BinaryEncoder.fromUint16(false, this.flags);
-        const questionResourceRecordCount = BinaryEncoder.fromUint16(false, this.questionResourceRecordCount);
-        const answerResourceRecordCount = BinaryEncoder.fromUint16(false, this.answerResourceRecordCount);
-        const authorityResourceRecordCount = BinaryEncoder.fromUint16(false, this.authorityResourceRecordCount);
-        const additionalResourceRecordCount = BinaryEncoder.fromUint16(false, this.additionalResourceRecordCount);
-
-        let resultLength = transactionId.length + flags.length
-            + questionResourceRecordCount.length
-            + answerResourceRecordCount.length
-            + authorityResourceRecordCount.length
-            + additionalResourceRecordCount.length;
         const buffers: Uint8Array[] = [];
+        buffers.push(BinaryEncoder.fromUint16(false, this.transactionId));
+        buffers.push(BinaryEncoder.fromUint16(false, this.flags));
+        buffers.push(BinaryEncoder.fromUint16(false, this.questionResourceRecordCount));
+        buffers.push(BinaryEncoder.fromUint16(false, this.answerResourceRecordCount));
+        buffers.push(BinaryEncoder.fromUint16(false, this.authorityResourceRecordCount));
+        buffers.push(BinaryEncoder.fromUint16(false, this.additionalResourceRecordCount));
+
         for (const question of this.questions) {
             const labels = question.questionName.split(".");
             for (const label of labels) {
-                const labelSizeBuffer = BinaryEncoder.fromUint8(label.length);
-                resultLength += labelSizeBuffer.length;
-                buffers.push(labelSizeBuffer);
-
-                const labelBuffer = BinaryEncoder.fromString(label);
-                resultLength += labelBuffer.length;
-                buffers.push(labelBuffer);
+                buffers.push(BinaryEncoder.fromUint8(label.length));
+                buffers.push(BinaryEncoder.fromString(label));
             }
-
-            const endBuffer = BinaryEncoder.fromUint8(0);
-            resultLength += endBuffer.length;
-            buffers.push(endBuffer);
-
-            const questionType = BinaryEncoder.fromUint16(false, question.questionType);
-            resultLength += questionType.length;
-            buffers.push(questionType);
-
-            const questionClass = BinaryEncoder.fromUint16(false, question.questionClass);
-            resultLength += questionClass.length;
-            buffers.push(questionClass);
+            buffers.push(BinaryEncoder.fromUint8(0));
+            buffers.push(BinaryEncoder.fromUint16(false, question.questionType));
+            buffers.push(BinaryEncoder.fromUint16(false, question.questionClass));
         }
 
         for (const answer of this.answers) {
-            const answerName = BinaryEncoder.fromUint8(0xc0, 0x0c);
-            resultLength += answerName.length;
-            buffers.push(answerName);
-
-            const answerType = BinaryEncoder.fromUint16(false, answer.answerType);
-            resultLength += answerType.length;
-            buffers.push(answerType);
-
-            const answerClass = BinaryEncoder.fromUint16(false, answer.answerClass);
-            resultLength += answerClass.length;
-            buffers.push(answerClass);
-
-            const timeToLive = BinaryEncoder.fromUint32(false, answer.timeToLive);
-            resultLength += timeToLive.length;
-            buffers.push(timeToLive);
-
-            const dataLength = BinaryEncoder.fromUint16(false, answer.dataLength);
-            resultLength += dataLength.length;
-            buffers.push(dataLength);
-
+            buffers.push(BinaryEncoder.fromUint8(0xc0, 0x0c));
+            buffers.push(BinaryEncoder.fromUint16(false, answer.answerType));
+            buffers.push(BinaryEncoder.fromUint16(false, answer.answerClass));
+            buffers.push(BinaryEncoder.fromUint32(false, answer.timeToLive));
+            buffers.push(BinaryEncoder.fromUint16(false, answer.dataLength));
             const addressParts = answer.address.split(".").map(a => +a);
-            const address = BinaryEncoder.fromUint8(...addressParts);
-            resultLength += address.length;
-            buffers.push(address);
+            buffers.push(BinaryEncoder.fromUint8(...addressParts));
         }
 
-        const result = new Uint8Array(resultLength);
-        new BinaryEncoder(result).setBinary(transactionId,
-            flags,
-            questionResourceRecordCount,
-            answerResourceRecordCount,
-            authorityResourceRecordCount,
-            additionalResourceRecordCount, ...buffers);
-        return result;
+        return BinaryEncoder.concat(...buffers);
     }
 }
