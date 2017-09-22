@@ -8,7 +8,6 @@ export type Answer = {
     answerName: string;
     answerClass: AnswerClass;
     timeToLive: number;
-    dataLength: number;
 } & ({
     answerType: AnswerType.A;
     address: string;
@@ -48,6 +47,11 @@ export const enum AnswerClass {
     IN = 0x0001,
 }
 
+type NameHistory = {
+    name: string;
+    index: number;
+};
+
 // tslint:disable:no-bitwise
 
 import { BinaryDecoder as BrowserBinaryDecoder, BinaryEncoder as BinaryEncoderType } from "fluent-binary-converter/browser";
@@ -71,14 +75,17 @@ export default class MessageBase {
         }
 
         for (let i = 0; i < answerResourceRecordCount; i++) {
-            binaryDecoder.getUint16(false);
+            const answerName = getDomainName(binaryDecoder);
             const answerType = binaryDecoder.getUint16(false);
             const answerClass = binaryDecoder.getUint16(false);
             const timeToLive = binaryDecoder.getUint32(false);
             const dataLength = binaryDecoder.getUint16(false);
-            const address = getIP(binaryDecoder, dataLength);
             if (answerType === AnswerType.A) {
-                message.addAddress(message.questions[0].questionName, timeToLive, address, answerClass);
+                const address = getIP(binaryDecoder, dataLength);
+                message.addAddress(answerName, timeToLive, address, answerClass);
+            } else if (answerType === AnswerType.CNAME) {
+                const CNAME = getDomainName(binaryDecoder);
+                message.addCNAME(answerName, timeToLive, CNAME, answerClass);
             }
         }
 
@@ -144,12 +151,12 @@ export default class MessageBase {
         this.questions.push({ questionName, questionType, questionClass });
     }
 
-    public addAddress(answerName: string, timeToLive: number, address: string, answerClass = AnswerClass.IN, dataLength = 4) {
-        this.answers.push({ answerName, answerType: AnswerType.A, answerClass, timeToLive, address, dataLength });
+    public addAddress(answerName: string, timeToLive: number, address: string, answerClass = AnswerClass.IN) {
+        this.answers.push({ answerName, answerType: AnswerType.A, answerClass, timeToLive, address });
     }
 
-    public addCNAME(answerName: string, timeToLive: number, CNAME: string, answerClass = AnswerClass.IN, dataLength = 4) {
-        this.answers.push({ answerName, answerType: AnswerType.CNAME, answerClass, timeToLive, CNAME, dataLength });
+    public addCNAME(answerName: string, timeToLive: number, CNAME: string, answerClass = AnswerClass.IN) {
+        this.answers.push({ answerName, answerType: AnswerType.CNAME, answerClass, timeToLive, CNAME });
     }
 
     protected encodeInternally(BinaryEncoder: typeof BinaryEncoderType) {
@@ -161,29 +168,29 @@ export default class MessageBase {
         buffers.push(BinaryEncoder.fromUint16(false, this.authorityResourceRecordCount));
         buffers.push(BinaryEncoder.fromUint16(false, this.additionalResourceRecordCount));
 
+        const nameHistories: NameHistory[] = [];
+
         for (const question of this.questions) {
-            const labels = question.questionName.split(".");
-            for (const label of labels) {
-                buffers.push(BinaryEncoder.fromUint8(label.length));
-                buffers.push(BinaryEncoder.fromString(label));
-            }
-            buffers.push(BinaryEncoder.fromUint8(0));
+            setName(buffers, BinaryEncoder, question.questionName, nameHistories);
             buffers.push(BinaryEncoder.fromUint16(false, question.questionType));
             buffers.push(BinaryEncoder.fromUint16(false, question.questionClass));
         }
 
         for (const answer of this.answers) {
-            buffers.push(BinaryEncoder.fromUint8(0xc0, 0x0c));
+            setName(buffers, BinaryEncoder, answer.answerName, nameHistories);
             buffers.push(BinaryEncoder.fromUint16(false, answer.answerType));
             buffers.push(BinaryEncoder.fromUint16(false, answer.answerClass));
             buffers.push(BinaryEncoder.fromUint32(false, answer.timeToLive));
-            buffers.push(BinaryEncoder.fromUint16(false, answer.dataLength));
             if (answer.answerType === AnswerType.A) {
+                buffers.push(BinaryEncoder.fromUint16(false, 4));
                 const addressParts = answer.address.split(".").map(a => +a);
                 buffers.push(BinaryEncoder.fromUint8(...addressParts));
             } else if (answer.answerType === AnswerType.CNAME) {
-                const CNAMEParts = answer.CNAME.split(".").map(a => +a);
-                buffers.push(BinaryEncoder.fromUint8(...CNAMEParts));
+                const startIndex = buffers.length;
+                buffers.push(new Buffer(2)); // empty Buffer(size = 2)
+                setName(buffers, BinaryEncoder, answer.CNAME, nameHistories);
+                const dataLength = buffers.filter((b, i) => i > startIndex).reduce((p, c) => p + c.length, 0);
+                buffers[startIndex] = BinaryEncoder.fromUint16(false, dataLength); // replace the empty Buffer with the data length
             }
         }
 
@@ -191,10 +198,26 @@ export default class MessageBase {
     }
 }
 
-function getDomainName(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder) {
-    const labels: string[] = [];
+function getDomainNameFromPointer(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder): string {
+    const pointerIndex = binaryDecoder.getUint8();
+    const currentIndex = binaryDecoder.index;
+    binaryDecoder.index = pointerIndex;
+    const result = getDomainName(binaryDecoder);
+    binaryDecoder.index = currentIndex;
+    return result;
+}
+
+function getDomainName(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder): string {
     let labelSize = binaryDecoder.getUint8();
+    if (labelSize === 0xc0) {
+        return getDomainNameFromPointer(binaryDecoder);
+    }
+    const labels: string[] = [];
     while (labelSize > 0) {
+        if (labelSize === 0xc0) {
+            labels.push(getDomainNameFromPointer(binaryDecoder));
+            break;
+        }
         const label = binaryDecoder.getString(labelSize);
         labels.push(label);
         labelSize = binaryDecoder.getUint8();
@@ -209,4 +232,60 @@ function getIP(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder, dataLe
         addressParts.push(addressPart);
     }
     return addressParts.join(".");
+}
+
+function find<T>(array: T[], condition: (element: T) => boolean): T | undefined {
+    for (const element of array) {
+        if (condition(element)) {
+            return element;
+        }
+    }
+    return undefined;
+}
+
+function setName(buffers: Uint8Array[], BinaryEncoder: typeof BinaryEncoderType, name: string, nameHistories: NameHistory[]) {
+    // if the whole domain name is found in the history, use the pointer
+    let matchedNameHistory = find(nameHistories, h => h.name === name);
+    if (matchedNameHistory) {
+        buffers.push(BinaryEncoder.fromUint8(0xc0, matchedNameHistory.index));
+        return;
+    }
+
+    const labelIndexes: number[] = [];
+    let nextIndex = buffers.reduce((p, c) => p + c.length, 0);
+    const labels = name.split(".");
+    for (let i = 0; i < labels.length; i++) {
+        labelIndexes.push(nextIndex);
+
+        // if the part of domain name is found in the history, use the pointer
+        if (i > 0) {
+            const partName = labels.slice(i).join(".");
+            matchedNameHistory = find(nameHistories, h => h.name === partName);
+            if (matchedNameHistory) {
+                buffers.push(BinaryEncoder.fromUint8(0xc0, matchedNameHistory.index));
+                for (let j = 0; j < i; j++) {
+                    nameHistories.push({
+                        name: j === 0 ? name : labels.slice(j).join("."),
+                        index: labelIndexes[j],
+                    });
+                }
+                return;
+            }
+        }
+
+        const label = labels[i];
+        buffers.push(BinaryEncoder.fromUint8(label.length));
+        buffers.push(BinaryEncoder.fromString(label));
+        nextIndex += 1 + label.length;
+    }
+
+    buffers.push(BinaryEncoder.fromUint8(0));
+
+    // save all part domain name into history
+    for (let j = 0; j < labels.length; j++) {
+        nameHistories.push({
+            name: j === 0 ? name : labels.slice(j).join("."),
+            index: labelIndexes[j],
+        });
+    }
 }
