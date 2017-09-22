@@ -6,12 +6,16 @@ export type Question = {
 
 export type Answer = {
     answerName: string;
-    answerType: AnswerType;
     answerClass: AnswerClass;
     timeToLive: number;
     dataLength: number;
+} & ({
+    answerType: AnswerType.A;
     address: string;
-};
+} | {
+        answerType: AnswerType.CNAME;
+        CNAME: string;
+    });
 
 export const enum MessageType {
     request = 0,
@@ -33,6 +37,7 @@ export const enum QuestionType {
 
 export const enum AnswerType {
     A = 0x01,
+    CNAME = 0x05,
 }
 
 export const enum QuestionClass {
@@ -59,14 +64,7 @@ export default class MessageBase {
         message.flags = flags;
 
         for (let i = 0; i < questionResourceRecordCount; i++) {
-            const labels: string[] = [];
-            let labelSize = binaryDecoder.getUint8();
-            while (labelSize > 0) {
-                const label = binaryDecoder.getString(labelSize);
-                labels.push(label);
-                labelSize = binaryDecoder.getUint8();
-            }
-            const questionName = labels.join(".");
+            const questionName = getDomainName(binaryDecoder);
             const questionType = binaryDecoder.getUint16(false);
             const questionClass = binaryDecoder.getUint16(false);
             message.addQuestion(questionName, questionType, questionClass);
@@ -78,13 +76,10 @@ export default class MessageBase {
             const answerClass = binaryDecoder.getUint16(false);
             const timeToLive = binaryDecoder.getUint32(false);
             const dataLength = binaryDecoder.getUint16(false);
-            const addressParts: number[] = [];
-            for (let j = 0; j < dataLength; j++) {
-                const addressPart = binaryDecoder.getUint8();
-                addressParts.push(addressPart);
+            const address = getIP(binaryDecoder, dataLength);
+            if (answerType === AnswerType.A) {
+                message.addAddress(message.questions[0].questionName, timeToLive, address, answerClass);
             }
-            const address = addressParts.join(".");
-            message.addAnswer(message.questions[0].questionName, timeToLive, address, answerType, answerClass);
         }
 
         for (let i = 0; i < authorityResourceRecordCount; i++) {
@@ -149,8 +144,12 @@ export default class MessageBase {
         this.questions.push({ questionName, questionType, questionClass });
     }
 
-    public addAnswer(answerName: string, timeToLive: number, address: string, answerType = AnswerType.A, answerClass = AnswerClass.IN, dataLength = 4) {
-        this.answers.push({ answerName, answerType, answerClass, timeToLive, address, dataLength });
+    public addAddress(answerName: string, timeToLive: number, address: string, answerClass = AnswerClass.IN, dataLength = 4) {
+        this.answers.push({ answerName, answerType: AnswerType.A, answerClass, timeToLive, address, dataLength });
+    }
+
+    public addCNAME(answerName: string, timeToLive: number, CNAME: string, answerClass = AnswerClass.IN, dataLength = 4) {
+        this.answers.push({ answerName, answerType: AnswerType.CNAME, answerClass, timeToLive, CNAME, dataLength });
     }
 
     protected encodeInternally(BinaryEncoder: typeof BinaryEncoderType) {
@@ -179,10 +178,35 @@ export default class MessageBase {
             buffers.push(BinaryEncoder.fromUint16(false, answer.answerClass));
             buffers.push(BinaryEncoder.fromUint32(false, answer.timeToLive));
             buffers.push(BinaryEncoder.fromUint16(false, answer.dataLength));
-            const addressParts = answer.address.split(".").map(a => +a);
-            buffers.push(BinaryEncoder.fromUint8(...addressParts));
+            if (answer.answerType === AnswerType.A) {
+                const addressParts = answer.address.split(".").map(a => +a);
+                buffers.push(BinaryEncoder.fromUint8(...addressParts));
+            } else if (answer.answerType === AnswerType.CNAME) {
+                const CNAMEParts = answer.CNAME.split(".").map(a => +a);
+                buffers.push(BinaryEncoder.fromUint8(...CNAMEParts));
+            }
         }
 
         return BinaryEncoder.concat(...buffers);
     }
+}
+
+function getDomainName(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder) {
+    const labels: string[] = [];
+    let labelSize = binaryDecoder.getUint8();
+    while (labelSize > 0) {
+        const label = binaryDecoder.getString(labelSize);
+        labels.push(label);
+        labelSize = binaryDecoder.getUint8();
+    }
+    return labels.join(".");
+}
+
+function getIP(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder, dataLength: number) {
+    const addressParts: number[] = [];
+    for (let j = 0; j < dataLength; j++) {
+        const addressPart = binaryDecoder.getUint8();
+        addressParts.push(addressPart);
+    }
+    return addressParts.join(".");
 }
