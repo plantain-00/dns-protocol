@@ -15,7 +15,7 @@ module.exports = {
     }
   ],
   lint: {
-    ts: `tslint "src/*.ts" "spec/*.ts"`,
+    ts: `tslint "src/*.ts" "spec/*.ts" "demo/*.ts"`,
     js: `standard "**/*.config.js"`,
     export: `no-unused-export "src/*.ts" "spec/*.ts"`
   },
@@ -34,5 +34,15 @@ module.exports = {
     ts: `tslint --fix "src/*.ts" "spec/*.ts"`,
     js: `standard --fix "**/*.config.js"`
   },
-  release: `clean-release`
+  release: `clean-release`,
+  demo: {
+    server: [
+      'tsc -p demo',
+      'node demo/server.js'
+    ],
+    client: [
+      'tsc -p demo',
+      'node demo/client.js'
+    ]
+  }
 }
