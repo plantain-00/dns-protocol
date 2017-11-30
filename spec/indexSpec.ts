@@ -1,4 +1,4 @@
-import Message, { MessageType, ReturnCode } from "../dist/nodejs/nodejs";
+import Message, { MessageType, ReturnCode } from "../dist/nodejs";
 
 it("normal query", () => {
     const request = new Message(43825);

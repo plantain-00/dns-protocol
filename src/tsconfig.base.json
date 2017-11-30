@@ -3,6 +3,8 @@
         "target": "es5",
         "declaration": true,
 
+        "outDir": "../dist",
+
         "module": "commonjs",
         "strict": true,
         "noUnusedLocals": true,

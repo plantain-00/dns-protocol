@@ -15,8 +15,9 @@ A Library to encode and parse data for DNS protocol.
 #### usage
 
 ```ts
-import Message, { MessageType } from "dns-protocol/nodejs/nodejs";
-// import Message, { MessageType } from "dns-protocol/browser/browser";
+import Message, { MessageType } from "dns-protocol";
+// import Message, { MessageType } from "dns-protocol/nodejs/nodejs"; // ES syntax
+// import Message, { MessageType } from "dns-protocol/browser/browser"; // ES module
 // <script src="./node_modules/dns-protocol/dns-protocol.min.js"></script>
 
 // construct request
@@ -39,4 +40,16 @@ const encodedAnswer = decodedRequest.encode(); // [0xab, 0x31, 0x81, 0x80, 0x00,
 
 // parse encoded response
 const decodedAnswer = Message.parse(encodedAnswer.buffer as ArrayBuffer);
+```
+
+#### change logs
+
+```ts
+// v2
+import Message, { MessageType } from "dns-protocol/nodejs";
+import Message, { MessageType } from "dns-protocol/browser";
+
+// v1
+import Message, { MessageType } from "dns-protocol/nodejs/nodejs";
+import Message, { MessageType } from "dns-protocol/browser/browser";
 ```

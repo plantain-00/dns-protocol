@@ -1,9 +1,17 @@
+import { BinaryDecoder, BinaryEncoder } from "fluent-binary-converter";
+
+/**
+ * @public
+ */
 export type Question = {
     questionName: string;
     questionType: QuestionType;
     questionClass: QuestionClass;
 };
 
+/**
+ * @public
+ */
 export type Answer = {
     answerName: string;
     answerClass: AnswerClass;
@@ -54,11 +62,14 @@ type NameHistory = {
 
 // tslint:disable:no-bitwise
 
-import { BinaryDecoder as BrowserBinaryDecoder, BinaryEncoder as BinaryEncoderType } from "fluent-binary-converter/browser";
-import { BinaryDecoder as NodejsBinaryDecoder } from "fluent-binary-converter/nodejs";
-
-export default class MessageBase {
-    protected static parseInternally(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder, message: MessageBase) {
+/**
+ * @public
+ */
+export default class Message {
+    public static parse(arrayBuffer: ArrayBuffer) {
+        const binaryDecoder = new BinaryDecoder(arrayBuffer);
+        const transactionId = binaryDecoder.getUint16(false);
+        const message = new Message(transactionId);
         const flags = binaryDecoder.getUint16(false);
         const questionResourceRecordCount = binaryDecoder.getUint16(false);
         const answerResourceRecordCount = binaryDecoder.getUint16(false);
@@ -96,6 +107,7 @@ export default class MessageBase {
         for (let i = 0; i < additionalResourceRecordCount; i++) {
             // todo
         }
+        return message;
     }
 
     public type = MessageType.request;
@@ -113,6 +125,44 @@ export default class MessageBase {
     public additionals: any[] = [];
 
     constructor(public transactionId: number) { }
+
+    public encode() {
+        const buffers: Uint8Array[] = [];
+        buffers.push(BinaryEncoder.fromUint16(false, this.transactionId));
+        buffers.push(BinaryEncoder.fromUint16(false, this.flags));
+        buffers.push(BinaryEncoder.fromUint16(false, this.questionResourceRecordCount));
+        buffers.push(BinaryEncoder.fromUint16(false, this.answerResourceRecordCount));
+        buffers.push(BinaryEncoder.fromUint16(false, this.authorityResourceRecordCount));
+        buffers.push(BinaryEncoder.fromUint16(false, this.additionalResourceRecordCount));
+
+        const nameHistories: NameHistory[] = [];
+
+        for (const question of this.questions) {
+            setName(buffers, question.questionName, nameHistories);
+            buffers.push(BinaryEncoder.fromUint16(false, question.questionType));
+            buffers.push(BinaryEncoder.fromUint16(false, question.questionClass));
+        }
+
+        for (const answer of this.answers) {
+            setName(buffers, answer.answerName, nameHistories);
+            buffers.push(BinaryEncoder.fromUint16(false, answer.answerType));
+            buffers.push(BinaryEncoder.fromUint16(false, answer.answerClass));
+            buffers.push(BinaryEncoder.fromUint32(false, answer.timeToLive));
+            if (answer.answerType === AnswerType.A) {
+                buffers.push(BinaryEncoder.fromUint16(false, 4));
+                const addressParts = answer.address.split(".").map(a => +a);
+                buffers.push(BinaryEncoder.fromUint8(...addressParts));
+            } else if (answer.answerType === AnswerType.CNAME) {
+                const startIndex = buffers.length;
+                buffers.push(new Uint8Array(2)); // empty Buffer(size = 2)
+                setName(buffers, answer.CNAME, nameHistories);
+                const dataLength = buffers.filter((b, i) => i > startIndex).reduce((p, c) => p + c.length, 0);
+                buffers[startIndex] = BinaryEncoder.fromUint16(false, dataLength); // replace the empty Buffer with the data length
+            }
+        }
+
+        return BinaryEncoder.concat(...buffers);
+    }
 
     public get flags() {
         return (this.type << 15)
@@ -158,47 +208,9 @@ export default class MessageBase {
     public addCNAME(answerName: string, timeToLive: number, CNAME: string, answerClass = AnswerClass.IN) {
         this.answers.push({ answerName, answerType: AnswerType.CNAME, answerClass, timeToLive, CNAME });
     }
-
-    protected encodeInternally(BinaryEncoder: typeof BinaryEncoderType) {
-        const buffers: Uint8Array[] = [];
-        buffers.push(BinaryEncoder.fromUint16(false, this.transactionId));
-        buffers.push(BinaryEncoder.fromUint16(false, this.flags));
-        buffers.push(BinaryEncoder.fromUint16(false, this.questionResourceRecordCount));
-        buffers.push(BinaryEncoder.fromUint16(false, this.answerResourceRecordCount));
-        buffers.push(BinaryEncoder.fromUint16(false, this.authorityResourceRecordCount));
-        buffers.push(BinaryEncoder.fromUint16(false, this.additionalResourceRecordCount));
-
-        const nameHistories: NameHistory[] = [];
-
-        for (const question of this.questions) {
-            setName(buffers, BinaryEncoder, question.questionName, nameHistories);
-            buffers.push(BinaryEncoder.fromUint16(false, question.questionType));
-            buffers.push(BinaryEncoder.fromUint16(false, question.questionClass));
-        }
-
-        for (const answer of this.answers) {
-            setName(buffers, BinaryEncoder, answer.answerName, nameHistories);
-            buffers.push(BinaryEncoder.fromUint16(false, answer.answerType));
-            buffers.push(BinaryEncoder.fromUint16(false, answer.answerClass));
-            buffers.push(BinaryEncoder.fromUint32(false, answer.timeToLive));
-            if (answer.answerType === AnswerType.A) {
-                buffers.push(BinaryEncoder.fromUint16(false, 4));
-                const addressParts = answer.address.split(".").map(a => +a);
-                buffers.push(BinaryEncoder.fromUint8(...addressParts));
-            } else if (answer.answerType === AnswerType.CNAME) {
-                const startIndex = buffers.length;
-                buffers.push(new Buffer(2)); // empty Buffer(size = 2)
-                setName(buffers, BinaryEncoder, answer.CNAME, nameHistories);
-                const dataLength = buffers.filter((b, i) => i > startIndex).reduce((p, c) => p + c.length, 0);
-                buffers[startIndex] = BinaryEncoder.fromUint16(false, dataLength); // replace the empty Buffer with the data length
-            }
-        }
-
-        return BinaryEncoder.concat(...buffers);
-    }
 }
 
-function getDomainNameFromPointer(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder): string {
+function getDomainNameFromPointer(binaryDecoder: BinaryDecoder): string {
     const pointerIndex = binaryDecoder.getUint8();
     const currentIndex = binaryDecoder.index;
     binaryDecoder.index = pointerIndex;
@@ -207,7 +219,7 @@ function getDomainNameFromPointer(binaryDecoder: BrowserBinaryDecoder | NodejsBi
     return result;
 }
 
-function getDomainName(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder): string {
+function getDomainName(binaryDecoder: BinaryDecoder): string {
     let labelSize = binaryDecoder.getUint8();
     if (labelSize === 0xc0) {
         return getDomainNameFromPointer(binaryDecoder);
@@ -225,7 +237,7 @@ function getDomainName(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder
     return labels.join(".");
 }
 
-function getIP(binaryDecoder: BrowserBinaryDecoder | NodejsBinaryDecoder, dataLength: number) {
+function getIP(binaryDecoder: BinaryDecoder, dataLength: number) {
     const addressParts: number[] = [];
     for (let j = 0; j < dataLength; j++) {
         const addressPart = binaryDecoder.getUint8();
@@ -243,7 +255,7 @@ function find<T>(array: T[], condition: (element: T) => boolean): T | undefined 
     return undefined;
 }
 
-function setName(buffers: Uint8Array[], BinaryEncoder: typeof BinaryEncoderType, name: string, nameHistories: NameHistory[]) {
+function setName(buffers: Uint8Array[], name: string, nameHistories: NameHistory[]) {
     // if the whole domain name is found in the history, use the pointer
     let matchedNameHistory = find(nameHistories, h => h.name === name);
     if (matchedNameHistory) {

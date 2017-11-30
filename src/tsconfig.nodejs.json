@@ -3,10 +3,6 @@
     "compilerOptions": {
         "target": "esnext",
         "outDir": "../dist/nodejs",
-        "module": "commonjs",
         "newLine": "LF"
-    },
-    "files": [
-        "nodejs.ts"
-    ]
+    }
 }
