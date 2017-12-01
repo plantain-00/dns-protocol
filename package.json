@@ -8,7 +8,6 @@
     "lint": "clean-scripts lint",
     "test": "clean-scripts test",
     "fix": "clean-scripts fix",
-    "release": "clean-scripts release",
     "serverDemo": "clean-scripts demo.server",
     "clientDemo": "clean-scripts demo.client"
   },
@@ -26,7 +25,6 @@
     "@commitlint/cli": "5.0.1",
     "@commitlint/config-angular": "5.0.1",
     "@types/jasmine": "2.8.2",
-    "clean-release": "1.4.0",
     "clean-scripts": "1.7.0",
     "jasmine": "2.8.0",
     "no-unused-export": "1.4.3",
