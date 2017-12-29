@@ -1,3 +1,5 @@
+# dns-protocol
+
 [![Dependency Status](https://david-dm.org/plantain-00/dns-protocol.svg)](https://david-dm.org/plantain-00/dns-protocol)
 [![devDependency Status](https://david-dm.org/plantain-00/dns-protocol/dev-status.svg)](https://david-dm.org/plantain-00/dns-protocol#info=devDependencies)
 [![Build Status: Linux](https://travis-ci.org/plantain-00/dns-protocol.svg?branch=master)](https://travis-ci.org/plantain-00/dns-protocol)
@@ -5,14 +7,13 @@
 [![npm version](https://badge.fury.io/js/dns-protocol.svg)](https://badge.fury.io/js/dns-protocol)
 [![Downloads](https://img.shields.io/npm/dm/dns-protocol.svg)](https://www.npmjs.com/package/dns-protocol)
 
-# dns-protocol
 A Library to encode and parse data for DNS protocol.
 
-#### install
+## install
 
 `yarn add dns-protocol`
 
-#### usage
+## usage
 
 ```ts
 import Message, { MessageType } from "dns-protocol";
@@ -42,7 +43,7 @@ const encodedAnswer = decodedRequest.encode(); // [0xab, 0x31, 0x81, 0x80, 0x00,
 const decodedAnswer = Message.parse(encodedAnswer.buffer as ArrayBuffer);
 ```
 
-#### change logs
+## change logs
 
 ```ts
 // v2
