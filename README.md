@@ -11,7 +11,7 @@ A Library to encode and parse data for DNS protocol.
 
 ## install
 
-`yarn add dns-protocol`
+`yarn global add dns-protocol`
 
 ## usage
 
