@@ -1,9 +1,8 @@
 {
-    "extends": "./tsconfig.base.json",
-    "compilerOptions": {
-        "outDir": "../dist/browser",
-        "module": "esnext",
-        "moduleResolution": "node",
-        "newLine": "LF"
-    }
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/browser",
+    "target": "es5",
+    "declaration": true
+  }
 }

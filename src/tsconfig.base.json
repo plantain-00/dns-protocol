@@ -1,15 +1,9 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "declaration": true,
-
-        "outDir": "../dist",
-
-        "module": "commonjs",
-        "strict": true,
-        "noUnusedLocals": true,
-        "noImplicitReturns": true,
-        "skipLibCheck": true,
-        "newLine": "LF"
-    }
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "es5",
+    "declaration": true,
+    "outDir": "../dist",
+    "module": "commonjs"
+  }
 }

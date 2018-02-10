@@ -1,7 +1,9 @@
 {
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "commonjs",
-        "newLine": "LF"
-    }
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "newLine": "LF",
+    "noImplicitAny": true,
+    "esModuleInterop": true
+  }
 }
