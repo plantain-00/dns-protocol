@@ -12,47 +12,52 @@ export type Question = {
 /**
  * @public
  */
-export type Answer = {
-  answerName: string;
-  answerClass: AnswerClass;
-  timeToLive: number;
-} & ({
-  answerType: AnswerType.A;
-  address: string;
-} | {
-  answerType: AnswerType.CNAME;
-  CNAME: string;
-})
+export type Answer =
+  &{
+    answerName: string;
+    answerClass: AnswerClass;
+    timeToLive: number;
+  }
+  & (
+    | {
+      answerType: AnswerType.A;
+      address: string;
+    }
+    | {
+      answerType: AnswerType.CNAME;
+      CNAME: string;
+    }
+  )
 
 export const enum MessageType {
-    request = 0,
-    response = 1
+  request = 0,
+  response = 1
 }
 
 export const enum OperationNode {
-    query = 0
+  query = 0
 }
 
 export const enum ReturnCode {
-    success = 0,
-    nameError = 3
+  success = 0,
+  nameError = 3
 }
 
 export const enum QuestionType {
-    A = 0x01
+  A = 0x01
 }
 
 export const enum AnswerType {
-    A = 0x01,
-    CNAME = 0x05
+  A = 0x01,
+  CNAME = 0x05
 }
 
 export const enum QuestionClass {
-    IN = 0x0001
+  IN = 0x0001
 }
 
 export const enum AnswerClass {
-    IN = 0x0001
+  IN = 0x0001
 }
 
 type NameHistory = {
@@ -78,9 +83,9 @@ export default class Message {
   public authorities: any[] = []
   public additionals: any[] = []
 
-  constructor (public transactionId: number) { }
+  constructor(public transactionId: number) { }
 
-  public static parse (arrayBuffer: ArrayBuffer) {
+  public static parse(arrayBuffer: ArrayBuffer) {
     const binaryDecoder = new BinaryDecoder(arrayBuffer)
     const transactionId = binaryDecoder.getUint16(false)
     const message = new Message(transactionId)
@@ -115,16 +120,16 @@ export default class Message {
     }
 
     for (let i = 0; i < authorityResourceRecordCount; i++) {
-            // todo
+      // todo
     }
 
     for (let i = 0; i < additionalResourceRecordCount; i++) {
-            // todo
+      // todo
     }
     return message
   }
 
-  public encode () {
+  public encode() {
     const buffers: Uint8Array[] = []
     buffers.push(BinaryEncoder.fromUint16(false, this.transactionId))
     buffers.push(BinaryEncoder.fromUint16(false, this.flags))
@@ -162,17 +167,17 @@ export default class Message {
     return BinaryEncoder.concat(...buffers)
   }
 
-  public get flags () {
+  public get flags() {
     return (this.type << 15)
-            + (this.operationNode << 11)
-            + (this.authoritative ? 1 << 10 : 0)
-            + (this.truncated ? 1 << 9 : 0)
-            + (this.recursionDesired ? 1 << 8 : 0)
-            + (this.recursionAvailable ? 1 << 7 : 0)
-            + (this.reserved << 4)
-            + this.returnCode
+      + (this.operationNode << 11)
+      + (this.authoritative ? 1 << 10 : 0)
+      + (this.truncated ? 1 << 9 : 0)
+      + (this.recursionDesired ? 1 << 8 : 0)
+      + (this.recursionAvailable ? 1 << 7 : 0)
+      + (this.reserved << 4)
+      + this.returnCode
   }
-  public set flags (value: number) {
+  public set flags(value: number) {
     this.type = value >> 15 & 0b1
     this.operationNode = value >> 11 & 0b1111
     this.authoritative = (value >> 10 & 0b1) === 1
@@ -182,33 +187,33 @@ export default class Message {
     this.reserved = value >> 4 & 0b111
     this.returnCode = value & 0b1111
   }
-  public get questionResourceRecordCount () {
+  public get questionResourceRecordCount() {
     return this.questions.length
   }
-  public get answerResourceRecordCount () {
+  public get answerResourceRecordCount() {
     return this.answers.length
   }
-  public get authorityResourceRecordCount () {
+  public get authorityResourceRecordCount() {
     return this.authorities.length
   }
-  public get additionalResourceRecordCount () {
+  public get additionalResourceRecordCount() {
     return this.additionals.length
   }
 
-  public addQuestion (questionName: string, questionType = QuestionType.A, questionClass = QuestionClass.IN) {
+  public addQuestion(questionName: string, questionType = QuestionType.A, questionClass = QuestionClass.IN) {
     this.questions.push({ questionName, questionType, questionClass })
   }
 
-  public addAddress (answerName: string, timeToLive: number, address: string, answerClass = AnswerClass.IN) {
+  public addAddress(answerName: string, timeToLive: number, address: string, answerClass = AnswerClass.IN) {
     this.answers.push({ answerName, answerType: AnswerType.A, answerClass, timeToLive, address })
   }
 
-  public addCNAME (answerName: string, timeToLive: number, CNAME: string, answerClass = AnswerClass.IN) {
+  public addCNAME(answerName: string, timeToLive: number, CNAME: string, answerClass = AnswerClass.IN) {
     this.answers.push({ answerName, answerType: AnswerType.CNAME, answerClass, timeToLive, CNAME })
   }
 }
 
-function getDomainNameFromPointer (binaryDecoder: BinaryDecoder): string {
+function getDomainNameFromPointer(binaryDecoder: BinaryDecoder): string {
   const pointerIndex = binaryDecoder.getUint8()
   const currentIndex = binaryDecoder.index
   binaryDecoder.index = pointerIndex
@@ -217,7 +222,7 @@ function getDomainNameFromPointer (binaryDecoder: BinaryDecoder): string {
   return result
 }
 
-function getDomainName (binaryDecoder: BinaryDecoder): string {
+function getDomainName(binaryDecoder: BinaryDecoder): string {
   let labelSize = binaryDecoder.getUint8()
   if (labelSize === 0xc0) {
     return getDomainNameFromPointer(binaryDecoder)
@@ -235,7 +240,7 @@ function getDomainName (binaryDecoder: BinaryDecoder): string {
   return labels.join('.')
 }
 
-function getIP (binaryDecoder: BinaryDecoder, dataLength: number) {
+function getIP(binaryDecoder: BinaryDecoder, dataLength: number) {
   const addressParts: number[] = []
   for (let j = 0; j < dataLength; j++) {
     const addressPart = binaryDecoder.getUint8()
@@ -244,7 +249,7 @@ function getIP (binaryDecoder: BinaryDecoder, dataLength: number) {
   return addressParts.join('.')
 }
 
-function find<T> (array: T[], condition: (element: T) => boolean): T | undefined {
+function find<T>(array: T[], condition: (element: T) => boolean): T | undefined {
   for (const element of array) {
     if (condition(element)) {
       return element
@@ -253,8 +258,9 @@ function find<T> (array: T[], condition: (element: T) => boolean): T | undefined
   return undefined
 }
 
-function setName (buffers: Uint8Array[], name: string, nameHistories: NameHistory[]) {
-    // if the whole domain name is found in the history, use the pointer
+// tslint:disable-next-line:cognitive-complexity
+function setName(buffers: Uint8Array[], name: string, nameHistories: NameHistory[]) {
+  // if the whole domain name is found in the history, use the pointer
   let matchedNameHistory = find(nameHistories, h => h.name === name)
   if (matchedNameHistory) {
     buffers.push(BinaryEncoder.fromUint8(0xc0, matchedNameHistory.index))
@@ -267,7 +273,7 @@ function setName (buffers: Uint8Array[], name: string, nameHistories: NameHistor
   for (let i = 0; i < labels.length; i++) {
     labelIndexes.push(nextIndex)
 
-        // if the part of domain name is found in the history, use the pointer
+    // if the part of domain name is found in the history, use the pointer
     if (i > 0) {
       const partName = labels.slice(i).join('.')
       matchedNameHistory = find(nameHistories, h => h.name === partName)
@@ -291,7 +297,7 @@ function setName (buffers: Uint8Array[], name: string, nameHistories: NameHistor
 
   buffers.push(BinaryEncoder.fromUint8(0))
 
-    // save all part domain name into history
+  // save all part domain name into history
   for (let j = 0; j < labels.length; j++) {
     nameHistories.push({
       name: j === 0 ? name : labels.slice(j).join('.'),
