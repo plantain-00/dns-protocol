@@ -1,8 +1,12 @@
 {
   "name": "dns-protocol",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A Library to encode and parse data for DNS protocol.",
   "main": "index.js",
+  "module": "index.js",
+  "unpkg": "dns-protocol.min.js",
+  "jsdelivr": "dns-protocol.min.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "clean-scripts build",
     "lint": "clean-scripts lint",

@@ -6,6 +6,7 @@
 [![Build Status: Windows](https://ci.appveyor.com/api/projects/status/github/plantain-00/dns-protocol?branch=master&svg=true)](https://ci.appveyor.com/project/plantain-00/dns-protocol/branch/master)
 [![npm version](https://badge.fury.io/js/dns-protocol.svg)](https://badge.fury.io/js/dns-protocol)
 [![Downloads](https://img.shields.io/npm/dm/dns-protocol.svg)](https://www.npmjs.com/package/dns-protocol)
+[![gzip size](https://img.badgesize.io/https://unpkg.com/dns-protocol?compression=gzip)](https://unpkg.com/dns-protocol)
 
 A Library to encode and parse data for DNS protocol.
 
