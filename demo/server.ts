@@ -1,5 +1,6 @@
 import * as dgram from 'dgram'
-import Message, { MessageType, ReturnCode } from '../dist/nodejs/nodejs'
+import Message, { MessageType, ReturnCode } from '../dist/nodejs'
+import { AddressInfo } from 'net'
 
 const server = dgram.createSocket('udp4')
 
@@ -23,7 +24,7 @@ server.on('message', (msg, rinfo) => {
 })
 
 server.on('listening', () => {
-  const address = server.address()
+  const address = server.address() as AddressInfo
   console.log(`server listening ${address.address}:${address.port}`)
 })
 

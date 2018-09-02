@@ -18,8 +18,6 @@ A Library to encode and parse data for DNS protocol.
 
 ```ts
 import Message, { MessageType } from "dns-protocol";
-// import Message, { MessageType } from "dns-protocol/nodejs"; // ES syntax
-// import Message, { MessageType } from "dns-protocol/browser"; // ES module
 // <script src="./node_modules/dns-protocol/dns-protocol.min.js"></script>
 
 // construct request
