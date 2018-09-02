@@ -1,6 +1,6 @@
 {
   "name": "dns-protocol",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "A Library to encode and parse data for DNS protocol.",
   "main": "nodejs/index.js",
   "module": "browser/index.js",
