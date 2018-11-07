@@ -7,6 +7,7 @@
 [![npm version](https://badge.fury.io/js/dns-protocol.svg)](https://badge.fury.io/js/dns-protocol)
 [![Downloads](https://img.shields.io/npm/dm/dns-protocol.svg)](https://www.npmjs.com/package/dns-protocol)
 [![gzip size](https://img.badgesize.io/https://unpkg.com/dns-protocol?compression=gzip)](https://unpkg.com/dns-protocol)
+[![type-coverage](https://img.shields.io/badge/dynamic/json.svg?label=type-coverage&prefix=%E2%89%A5&suffix=%&query=$.typeCoverage.atLeast&uri=https%3A%2F%2Fraw.githubusercontent.com%2Fplantain-00%2Fdns-protocol%2Fmaster%2Fpackage.json)](https://github.com/plantain-00/dns-protocol)
 
 A Library to encode and parse data for DNS protocol.
 
