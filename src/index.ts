@@ -3,7 +3,7 @@ import { BinaryDecoder, BinaryEncoder } from 'fluent-binary-converter'
 /**
  * @public
  */
-export type Question = {
+export interface Question {
   questionName: string;
   questionType: QuestionType;
   questionClass: QuestionClass;
@@ -60,7 +60,7 @@ export const enum AnswerClass {
   IN = 0x0001
 }
 
-type NameHistory = {
+interface NameHistory {
   name: string;
   index: number;
 }
@@ -258,7 +258,6 @@ function find<T>(array: T[], condition: (element: T) => boolean): T | undefined 
   return undefined
 }
 
-// tslint:disable-next-line:cognitive-complexity
 function setName(buffers: Uint8Array[], name: string, nameHistories: NameHistory[]) {
   // if the whole domain name is found in the history, use the pointer
   let matchedNameHistory = find(nameHistories, h => h.name === name)
