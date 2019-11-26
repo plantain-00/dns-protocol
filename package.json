@@ -6,7 +6,6 @@
   "module": "browser/index.js",
   "unpkg": "dns-protocol.min.js",
   "jsdelivr": "dns-protocol.min.js",
-  "types": "nodejs/index.d.ts",
   "scripts": {
     "build": "clean-scripts build",
     "lint": "clean-scripts lint",
@@ -31,6 +30,7 @@
   "devDependencies": {
     "@commitlint/cli": "8.2.0",
     "@commitlint/config-conventional": "8.2.0",
+    "@microsoft/api-extractor": "^7.6.2",
     "@types/jasmine": "3.5.0",
     "@typescript-eslint/eslint-plugin": "2.8.0",
     "@typescript-eslint/parser": "2.8.0",
