@@ -39,9 +39,13 @@ class Message {
     // (undocumented)
     addCNAME(answerName: string, timeToLive: number, CNAME: string, answerClass?: AnswerClass): void;
     // (undocumented)
+    get additionalResourceRecordCount(): number;
+    // (undocumented)
     additionals: any[];
     // (undocumented)
     addQuestion(questionName: string, questionType?: QuestionType, questionClass?: QuestionClass): void;
+    // (undocumented)
+    get answerResourceRecordCount(): number;
     // (undocumented)
     answers: Answer[];
     // (undocumented)
@@ -49,11 +53,18 @@ class Message {
     // (undocumented)
     authorities: any[];
     // (undocumented)
+    get authorityResourceRecordCount(): number;
+    // (undocumented)
     encode(): Uint8Array;
+    // (undocumented)
+    get flags(): number;
+    set flags(value: number);
     // (undocumented)
     operationNode: OperationNode;
     // (undocumented)
     static parse(arrayBuffer: ArrayBuffer): Message;
+    // (undocumented)
+    get questionResourceRecordCount(): number;
     // (undocumented)
     questions: Question[];
     // (undocumented)
@@ -64,12 +75,6 @@ class Message {
     reserved: number;
     // (undocumented)
     returnCode: ReturnCode;
-    get flags(): number;
-    set flags(value: number);
-    get questionResourceRecordCount(): number;
-    get answerResourceRecordCount(): number;
-    get authorityResourceRecordCount(): number;
-    get additionalResourceRecordCount(): number;
     // (undocumented)
     transactionId: number;
     // (undocumented)
