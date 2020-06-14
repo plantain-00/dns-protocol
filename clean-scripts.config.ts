@@ -28,13 +28,7 @@ export default {
   ],
   fix: `eslint --ext .js,.ts,.tsx ${tsFiles} ${jsFiles} --fix`,
   demo: {
-    server: [
-      'tsc -p demo',
-      'node demo/server.js'
-    ],
-    client: [
-      'tsc -p demo',
-      'node demo/client.js'
-    ]
+    server: 'ts-node demo/server.ts',
+    client: 'ts-node demo/client.ts'
   }
 }
