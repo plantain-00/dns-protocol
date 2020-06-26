@@ -1,5 +1,4 @@
 const tsFiles = `"src/**/*.ts" "demo/**/*.ts"`
-const jsFiles = `"*.config.js"`
 
 export default {
   build: [
@@ -16,7 +15,7 @@ export default {
     }
   ],
   lint: {
-    ts: `eslint --ext .js,.ts,.tsx ${tsFiles} ${jsFiles}`,
+    ts: `eslint --ext .js,.ts,.tsx ${tsFiles}`,
     export: `no-unused-export ${tsFiles}`,
     markdown: `markdownlint README.md`,
     typeCoverage: 'type-coverage -p src/tsconfig.nodejs.json --strict',
@@ -25,7 +24,7 @@ export default {
   test: [
     'ava'
   ],
-  fix: `eslint --ext .js,.ts,.tsx ${tsFiles} ${jsFiles} --fix`,
+  fix: `eslint --ext .js,.ts,.tsx ${tsFiles} --fix`,
   demo: {
     server: 'ts-node demo/server.ts',
     client: 'ts-node demo/client.ts'
