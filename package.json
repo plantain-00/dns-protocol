@@ -28,8 +28,6 @@
   },
   "homepage": "https://github.com/plantain-00/dns-protocol#readme",
   "devDependencies": {
-    "@commitlint/cli": "9.0.1",
-    "@commitlint/config-conventional": "9.0.1",
     "@microsoft/api-extractor": "7.8.15",
     "@rollup/plugin-commonjs": "13.0.0",
     "@rollup/plugin-node-resolve": "8.1.0",
