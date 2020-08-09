@@ -12,7 +12,8 @@
     "test": "clean-scripts test",
     "fix": "clean-scripts fix",
     "serverDemo": "clean-scripts demo.server",
-    "clientDemo": "clean-scripts demo.client"
+    "clientDemo": "clean-scripts demo.client",
+    "release": "clean-release"
   },
   "repository": {
     "type": "git",
@@ -34,6 +35,7 @@
     "@typescript-eslint/eslint-plugin": "3.8.0",
     "@typescript-eslint/parser": "3.8.0",
     "ava": "3.11.1",
+    "clean-release": "2.14.0",
     "clean-scripts": "1.17.0",
     "eslint": "7.6.0",
     "eslint-config-prettier": "6.11.0",
@@ -50,5 +52,8 @@
   },
   "dependencies": {
     "fluent-binary-converter": "4"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }
