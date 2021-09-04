@@ -80,8 +80,8 @@ export default class Message {
 
   public questions: Question[] = []
   public answers: Answer[] = []
-  public authorities: any[] = []
-  public additionals: any[] = []
+  public authorities: unknown[] = []
+  public additionals: unknown[] = []
 
   constructor(public transactionId: number) { }
 
@@ -281,14 +281,14 @@ function setName(buffers: Uint8Array[], name: string, nameHistories: NameHistory
         for (let j = 0; j < i; j++) {
           nameHistories.push({
             name: j === 0 ? name : labels.slice(j).join('.'),
-            index: labelIndexes[j]
+            index: labelIndexes[j]!,
           })
         }
         return
       }
     }
 
-    const label = labels[i]
+    const label = labels[i]!
     buffers.push(BinaryEncoder.fromUint8(label.length))
     buffers.push(BinaryEncoder.fromString(label))
     nextIndex += 1 + label.length
@@ -300,7 +300,7 @@ function setName(buffers: Uint8Array[], name: string, nameHistories: NameHistory
   for (let j = 0; j < labels.length; j++) {
     nameHistories.push({
       name: j === 0 ? name : labels.slice(j).join('.'),
-      index: labelIndexes[j]
+      index: labelIndexes[j]!,
     })
   }
 }

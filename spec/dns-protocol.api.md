@@ -41,7 +41,7 @@ class Message {
     // (undocumented)
     get additionalResourceRecordCount(): number;
     // (undocumented)
-    additionals: any[];
+    additionals: unknown[];
     // (undocumented)
     addQuestion(questionName: string, questionType?: QuestionType, questionClass?: QuestionClass): void;
     // (undocumented)
@@ -51,7 +51,7 @@ class Message {
     // (undocumented)
     authoritative: boolean;
     // (undocumented)
-    authorities: any[];
+    authorities: unknown[];
     // (undocumented)
     get authorityResourceRecordCount(): number;
     // (undocumented)
@@ -82,7 +82,6 @@ class Message {
     // (undocumented)
     type: MessageType;
 }
-
 export default Message;
 
 // @public (undocumented)
@@ -128,7 +127,6 @@ export const enum ReturnCode {
     // (undocumented)
     success = 0
 }
-
 
 // (No @packageDocumentation comment for this package)
 
